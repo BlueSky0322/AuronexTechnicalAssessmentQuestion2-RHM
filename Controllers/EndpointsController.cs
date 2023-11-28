@@ -24,24 +24,32 @@ namespace RHM.API.Controllers
         [HttpGet("GenerateNewHash")]
         public async Task<ActionResult<Endpoint1Response>> GenerateHash()
         {
-            
-            //Delay by 1 second (1000 milliseconds)
-            await Task.Delay(1000);
-
-            //Generate random string and hash it
-            string generatedString = GenerateRandomString();
-            string hashedString = SHA256Hasher(generatedString);
-
-            //Create response object.
-            var response = new Endpoint1Response
+            try
             {
-                Hash = hashedString,
-            };
+                //Delay by 1 second (1000 milliseconds)
+                await Task.Delay(1000);
 
-            //Logging for debug purposes
-            _logger.LogInformation($"[GenerateNewHash] Received GET request with content: {hashedString}");
+                //Generate random string and hash it
+                string generatedString = GenerateRandomString();
+                string hashedString = SHA256Hasher(generatedString);
 
-            return Ok(response);
+                //Create response object.
+                var response = new Endpoint1Response
+                {
+                    Hash = hashedString,
+                };
+
+                //Logging for debug purposes
+                _logger.LogInformation($"[GenerateNewHash] Received GET request with content: {hashedString}");
+
+                return Ok(response);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogInformation($"An error occurred: {ex.Message}");
+                return StatusCode(500, $"An error occurred: {ex.Message}");
+            }
+
         }
 
         //Generate a random string using LINQ
