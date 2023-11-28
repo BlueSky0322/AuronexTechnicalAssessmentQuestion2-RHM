@@ -38,9 +38,6 @@ namespace RHM.API.Controllers
                     Hash = hashedString,
                 };
 
-                //Logging for debug purposes
-                _logger.LogInformation($"[API][GenerateNewHash] Received GET request with content: {hashedString}");
-
                 return Ok(response);
             }
             catch (Exception ex)
