@@ -52,6 +52,21 @@ namespace RHM.API.Controllers
 
         }
 
+        //Endpoint 2
+        [HttpGet("ValidateHash")]
+        public async Task<ActionResult<Endpoint2Response>> ValidateHash()
+        {
+            try
+            {
+                return Ok();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogInformation($"An error occurred: {ex.Message}");
+                return StatusCode(500, $"An error occurred: {ex.Message}");
+            }
+        }
+
         //Generate a random string using LINQ
         //ref:https://stackoverflow.com/questions/1344221/how-can-i-generate-random-alphanumeric-strings
         private string GenerateRandomString()
