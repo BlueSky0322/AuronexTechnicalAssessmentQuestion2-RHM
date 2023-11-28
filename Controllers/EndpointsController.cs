@@ -45,7 +45,7 @@ namespace RHM.API.Controllers
             }
             catch (Exception ex)
             {
-                return StatusCode(500, $"An error occurred: {ex.Message}");
+                return StatusCode(500, $"[API][GenerateNewHash] An error occurred: {ex.Message}");
             }
 
         }
@@ -143,7 +143,7 @@ namespace RHM.API.Controllers
             }
             catch (Exception ex)
             {
-                return StatusCode(500, $"An error occurred: {ex.Message}");
+                return StatusCode(500, $"[API][ValidateHash] An error occurred: {ex.Message}");
             }
         }
 
