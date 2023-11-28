@@ -1,7 +1,5 @@
-﻿using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Mvc;
 using RHM.API.Models;
-using System;
 using System.Security.Cryptography;
 using System.Text;
 
@@ -60,10 +58,10 @@ namespace RHM.API.Controllers
             try
             {
                 //Local variables for storing certain values
-                bool hashPass = false;
+                bool hashPassed = false;
                 char lastChar;
                 string retrievedHash;
-                int attempts = 1;
+                int attempts = 0;
 
                 //Create response object.
                 var endpoint2Response = new Endpoint2Response
@@ -73,19 +71,24 @@ namespace RHM.API.Controllers
                     Attempts = attempts,
                 };
 
-                while (!hashPass)
+                while (!hashPassed)
                 {
-                    //Make request to Endpoint 1 to get hash string
+                    //Initiate attempt counter
+                    attempts++;
+
+                    //Make HTTP request to Endpoint 1 to get hash string
                     var endpoint1Response = await _httpClient.GetAsync("https://localhost:7057/Hasher/GenerateNewHash");
                     if (endpoint1Response.IsSuccessStatusCode)
                     {
+                        //Retrieve and read the content as JSON object
                         var content = await endpoint1Response.Content.ReadFromJsonAsync<Endpoint1Response>();
                         if (content != null && content.Hash != null)
                         {
                             _logger.LogInformation($"[API][ValidateHash] Hash: {content.Hash}");
+                            //Assign retrieved value to local variable
                             retrievedHash = content.Hash;
 
-                            //Assign retrieved value to response object
+                            //Assign local variable to response object property
                             endpoint2Response.Hash = retrievedHash;
 
                             //Extract the last character from the hash string
@@ -98,27 +101,33 @@ namespace RHM.API.Controllers
                                 int lastNum = int.Parse(lastChar.ToString());
                                 if (lastNum % 2 != 0)
                                 {
-                                    hashPass = true;
-                                    endpoint2Response.Attempts = attempts;
+                                    //Break out of the loop only if conditions met
+                                    hashPassed = true;
                                     endpoint2Response.ResponseMessage = $"The last character is '{lastChar}'. This is a number and odd number. Pass!";
+                                    endpoint2Response.Attempts = attempts;
+
+                                    _logger.LogInformation($"[API][ValidateHash] {endpoint2Response.ResponseMessage}");
                                     break;
                                 }
                                 else
                                 {
-                                    endpoint2Response.Attempts = attempts;
+                                    //Even number
                                     endpoint2Response.ResponseMessage = $"The last character is '{lastChar}'. This is an even number. Does not pass.";
-                                    break;
+                                    endpoint2Response.Attempts = attempts;
+                                    _logger.LogInformation($"[API][ValidateHash] {endpoint2Response.ResponseMessage}");
                                 }
                             }
                             else
                             {
-                                endpoint2Response.Attempts = attempts;
+                                //Alphabet
                                 endpoint2Response.ResponseMessage = $"The last character is '{lastChar}'. This is an alphabet. Does not pass.";
+                                endpoint2Response.Attempts = attempts;
+                                _logger.LogInformation($"[API][ValidateHash] {endpoint2Response.ResponseMessage}");
                             }
                         }
 
                     }
-                    attempts++;
+
                 }
 
                 /**
@@ -141,7 +150,7 @@ namespace RHM.API.Controllers
                 //            int lastNum = int.Parse(lastChar.ToString());
                 //            if (lastNum % 2 != 0)
                 //            {
-                //                hashPass = true; 
+                //                hashPassed = true; 
                 //                endpoint2Response.ResponseMessage = $"The last character is '{lastChar}'. This is a number and odd number. Pass!";
                 //                break;
                 //            }
@@ -161,14 +170,15 @@ namespace RHM.API.Controllers
                 //} 
                 **/
 
-                if (hashPass)
+                //Success response body only if conditions are met
+                if (hashPassed)
                 {
-                    _logger.LogInformation($"[ValidateHash] Hash passed in ({attempts}) attempts.");
+                    _logger.LogInformation($"[API][ValidateHash] Hash passed in ({attempts}) attempts.");
                     return Ok(endpoint2Response);
                 }
                 else
                 {
-                    _logger.LogInformation($"[ValidateHash] Hash does not pass. Current attempt no.: {attempts}");
+                    _logger.LogInformation($"[API][ValidateHash] Hash does not pass. Current attempt no.: {attempts}");
                     return NotFound(endpoint2Response);
                 }
             }
