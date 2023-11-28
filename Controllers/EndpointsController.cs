@@ -123,8 +123,10 @@ namespace RHM.API.Controllers
                                 endpoint2Response.Attempts = attempts;
                                 _logger.LogInformation($"[API][ValidateHash] {endpoint2Response.ResponseMessage}");
                             }
-                        }                      
+                        }
+                        else { break; }
                     }
+                    else { break; }
 
                 }
 
