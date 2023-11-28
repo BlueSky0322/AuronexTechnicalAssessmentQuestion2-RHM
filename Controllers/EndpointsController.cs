@@ -26,7 +26,8 @@ namespace RHM.API.Controllers
             return Ok();
         }
 
-        //Generate a random string
+        //Generate a random string 
+        //ref:https://stackoverflow.com/questions/1344221/how-can-i-generate-random-alphanumeric-strings
         private string GenerateRandomString()
         {
             const string chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
