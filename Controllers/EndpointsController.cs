@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using RHM.API.Models;
 using System;
 using System.Security.Cryptography;
 using System.Text;
@@ -21,11 +22,26 @@ namespace RHM.API.Controllers
 
         //Endpoint 1
         [HttpGet("GenerateNewHash")]
-        public async Task<ActionResult<string>> GenerateHash()
+        public async Task<ActionResult<Endpoint1Response>> GenerateHash()
         {
-            await Task.Delay(100);
+            
+            //Delay by 1 second (1000 milliseconds)
+            await Task.Delay(1000);
 
-            return Ok();
+            //Generate random string and hash it
+            string generatedString = GenerateRandomString();
+            string hashedString = SHA256Hasher(generatedString);
+
+            //Create response object.
+            var response = new Endpoint1Response
+            {
+                Hash = hashedString,
+            };
+
+            //Logging for debug purposes
+            _logger.LogInformation($"[GenerateNewHash] Received GET request with content: {hashedString}");
+
+            return Ok(response);
         }
 
         //Generate a random string using LINQ
@@ -41,13 +57,13 @@ namespace RHM.API.Controllers
         //ref:https://www.c-sharpcorner.com/article/compute-sha256-hash-in-c-sharp/
         private string SHA256Hasher(string generatedString)
         {
-            // Create a SHA256
+            //Create a SHA256
             using (SHA256 sha256Hash = SHA256.Create())
             {
-                // ComputeHash - returns byte array
+                //ComputeHash - returns byte array
                 byte[] bytes = sha256Hash.ComputeHash(Encoding.UTF8.GetBytes(generatedString));
 
-                // Convert byte array to a string
+                //Convert byte array to a string
                 StringBuilder builder = new StringBuilder();
                 for (int i = 0; i < bytes.Length; i++)
                 {
