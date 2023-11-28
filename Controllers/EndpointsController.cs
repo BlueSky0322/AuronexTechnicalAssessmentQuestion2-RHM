@@ -129,46 +129,6 @@ namespace RHM.API.Controllers
 
                 }
 
-                /**
-                //    _logger.LogInformation($"[ValidateHash] Received response from Endpoint 1: {hashString.Value}");
-                //    if (hashString != null && hashString.Value != null && !string.IsNullOrEmpty(hashString.Value.Hash))
-                //    {
-                //        _logger.LogInformation($"[ValidateHash] Received response from Endpoint 1");
-
-                //        retrievedHash = hashString.Value.Hash;
-                //        //Assign retrieved value to response object
-                //        endpoint2Response.Hash = retrievedHash;
-
-                //        //Extract the last character from the hash string
-                //        lastChar = retrievedHash.Last();
-
-                //        //Validate if last character is number && odd number
-                //        if (char.IsDigit(lastChar))
-                //        {
-                //            //Validate if last character is odd number
-                //            int lastNum = int.Parse(lastChar.ToString());
-                //            if (lastNum % 2 != 0)
-                //            {
-                //                hashPassed = true; 
-                //                endpoint2Response.ResponseMessage = $"The last character is '{lastChar}'. This is a number and odd number. Pass!";
-                //                break;
-                //            }
-                //            else
-                //            {
-                //                endpoint2Response.ResponseMessage = $"The last character is '{lastChar}'. This is an even number. Does not pass.";
-                //                break;
-                //            }
-                //        }
-                //        else
-                //        {
-                //            endpoint2Response.ResponseMessage = $"The last character is '{lastChar}'. This is an alphabet. Does not pass.";
-                //        }
-
-                //    }
-
-                //} 
-                **/
-
                 //Success response body only if conditions are met
                 if (hashPassed)
                 {
