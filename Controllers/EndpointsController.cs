@@ -58,7 +58,67 @@ namespace RHM.API.Controllers
         {
             try
             {
-                return Ok();
+                //Local variables for storing certain values
+                bool hashPass = false;
+                char lastChar;
+                string retrievedHash;
+
+                //Create response object.
+                var response = new Endpoint2Response
+                {
+                    Hash = "",
+                    ResponseMessage = "",
+                };
+
+                while (!hashPass)
+                {
+                    //Make request to Endpoint 1 to get hash string
+                    var hashString = await GenerateHash();
+                    if (hashString != null && hashString.Value != null && !string.IsNullOrEmpty(hashString.Value.Hash))
+                    {
+                        _logger.LogInformation($"[ValidateHash] Received response from Endpoint 1");
+
+                        retrievedHash = hashString.Value.Hash;
+                        //Assign retrieved value to response object
+                        response.Hash = retrievedHash;
+
+                        //Extract the last character from the hash string
+                        lastChar = retrievedHash.Last();
+
+                        //Validate if last character is number && odd number
+                        if (char.IsDigit(lastChar))
+                        {
+                            //Validate if last character is odd number
+                            int lastNum = int.Parse(lastChar.ToString());
+                            if (lastNum % 2 != 0)
+                            {
+                                hashPass = true; 
+                                response.ResponseMessage = $"The last character is '{lastChar}'. This is a number and odd number. Pass!";
+                            }
+                            else
+                            {
+                                response.ResponseMessage = $"The last character is '{lastChar}'. This is an even number. Does not pass.";
+                            }
+                        }
+                        else
+                        {
+                            response.ResponseMessage = $"The last character is '{lastChar}'. This is an alphabet. Does not pass.";
+                        }
+
+                    }
+
+                }
+
+                if (hashPass)
+                {
+                    _logger.LogInformation("[ValidateHash] Hash Pass.");
+                    return Ok(response);
+                }
+                else
+                {
+                    _logger.LogInformation($"[ValidateHash] Hash Failed with '{response.ResponseMessage}'");
+                    return NotFound(response);
+                }
             }
             catch (Exception ex)
             {
