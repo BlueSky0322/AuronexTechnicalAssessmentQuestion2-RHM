@@ -4,5 +4,6 @@
     {
         public string? Hash { get; set; }
         public string? ResponseMessage { get; set; }
+        public int? Attempts { get; set; }
     }
 }
