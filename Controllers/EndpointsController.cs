@@ -45,7 +45,6 @@ namespace RHM.API.Controllers
             }
             catch (Exception ex)
             {
-                _logger.LogInformation($"An error occurred: {ex.Message}");
                 return StatusCode(500, $"An error occurred: {ex.Message}");
             }
 
@@ -184,7 +183,6 @@ namespace RHM.API.Controllers
             }
             catch (Exception ex)
             {
-                _logger.LogInformation($"An error occurred: {ex.Message}");
                 return StatusCode(500, $"An error occurred: {ex.Message}");
             }
         }
