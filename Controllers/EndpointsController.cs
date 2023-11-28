@@ -65,8 +65,8 @@ namespace RHM.API.Controllers
                 //Create response object.
                 var endpoint2Response = new Endpoint2Response
                 {
-                    Hash = "",
-                    ResponseMessage = "",
+                    Hash = null,
+                    ResponseMessage = "No hash string was received.",
                     Attempts = attempts,
                 };
 
@@ -123,8 +123,7 @@ namespace RHM.API.Controllers
                                 endpoint2Response.Attempts = attempts;
                                 _logger.LogInformation($"[API][ValidateHash] {endpoint2Response.ResponseMessage}");
                             }
-                        }
-
+                        }                      
                     }
 
                 }
@@ -137,7 +136,6 @@ namespace RHM.API.Controllers
                 }
                 else
                 {
-                    _logger.LogInformation($"[API][ValidateHash] Hash does not pass. Current attempt no.: {attempts}");
                     return NotFound(endpoint2Response);
                 }
             }
