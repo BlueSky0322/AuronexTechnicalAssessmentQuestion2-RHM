@@ -12,11 +12,12 @@ namespace RHM.API.Controllers
     public class EndpointsController : ControllerBase
     {
         private static Random random = new Random();
-
+        private readonly HttpClient _httpClient;
         private readonly ILogger<EndpointsController> _logger;
 
-        public EndpointsController(ILogger<EndpointsController> logger)
+        public EndpointsController(HttpClient httpClient, ILogger<EndpointsController> logger)
         {
+            _httpClient = httpClient;
             _logger = logger;
         }
 
@@ -40,7 +41,7 @@ namespace RHM.API.Controllers
                 };
 
                 //Logging for debug purposes
-                _logger.LogInformation($"[GenerateNewHash] Received GET request with content: {hashedString}");
+                _logger.LogInformation($"[API][GenerateNewHash] Received GET request with content: {hashedString}");
 
                 return Ok(response);
             }
@@ -62,62 +63,113 @@ namespace RHM.API.Controllers
                 bool hashPass = false;
                 char lastChar;
                 string retrievedHash;
+                int attempts = 1;
 
                 //Create response object.
-                var response = new Endpoint2Response
+                var endpoint2Response = new Endpoint2Response
                 {
                     Hash = "",
                     ResponseMessage = "",
+                    Attempts = attempts,
                 };
 
                 while (!hashPass)
                 {
                     //Make request to Endpoint 1 to get hash string
-                    var hashString = await GenerateHash();
-                    if (hashString != null && hashString.Value != null && !string.IsNullOrEmpty(hashString.Value.Hash))
+                    var endpoint1Response = await _httpClient.GetAsync("https://localhost:7057/Hasher/GenerateNewHash");
+                    if (endpoint1Response.IsSuccessStatusCode)
                     {
-                        _logger.LogInformation($"[ValidateHash] Received response from Endpoint 1");
-
-                        retrievedHash = hashString.Value.Hash;
-                        //Assign retrieved value to response object
-                        response.Hash = retrievedHash;
-
-                        //Extract the last character from the hash string
-                        lastChar = retrievedHash.Last();
-
-                        //Validate if last character is number && odd number
-                        if (char.IsDigit(lastChar))
+                        var content = await endpoint1Response.Content.ReadFromJsonAsync<Endpoint1Response>();
+                        if (content != null && content.Hash != null)
                         {
-                            //Validate if last character is odd number
-                            int lastNum = int.Parse(lastChar.ToString());
-                            if (lastNum % 2 != 0)
+                            _logger.LogInformation($"[API][ValidateHash] Hash: {content.Hash}");
+                            retrievedHash = content.Hash;
+
+                            //Assign retrieved value to response object
+                            endpoint2Response.Hash = retrievedHash;
+
+                            //Extract the last character from the hash string
+                            lastChar = retrievedHash.Last();
+
+                            //Validate if last character is number && odd number
+                            if (char.IsDigit(lastChar))
                             {
-                                hashPass = true; 
-                                response.ResponseMessage = $"The last character is '{lastChar}'. This is a number and odd number. Pass!";
+                                //Validate if last character is odd number
+                                int lastNum = int.Parse(lastChar.ToString());
+                                if (lastNum % 2 != 0)
+                                {
+                                    hashPass = true;
+                                    endpoint2Response.Attempts = attempts;
+                                    endpoint2Response.ResponseMessage = $"The last character is '{lastChar}'. This is a number and odd number. Pass!";
+                                    break;
+                                }
+                                else
+                                {
+                                    endpoint2Response.Attempts = attempts;
+                                    endpoint2Response.ResponseMessage = $"The last character is '{lastChar}'. This is an even number. Does not pass.";
+                                    break;
+                                }
                             }
                             else
                             {
-                                response.ResponseMessage = $"The last character is '{lastChar}'. This is an even number. Does not pass.";
+                                endpoint2Response.Attempts = attempts;
+                                endpoint2Response.ResponseMessage = $"The last character is '{lastChar}'. This is an alphabet. Does not pass.";
                             }
-                        }
-                        else
-                        {
-                            response.ResponseMessage = $"The last character is '{lastChar}'. This is an alphabet. Does not pass.";
                         }
 
                     }
-
+                    attempts++;
                 }
+
+                /**
+                //    _logger.LogInformation($"[ValidateHash] Received response from Endpoint 1: {hashString.Value}");
+                //    if (hashString != null && hashString.Value != null && !string.IsNullOrEmpty(hashString.Value.Hash))
+                //    {
+                //        _logger.LogInformation($"[ValidateHash] Received response from Endpoint 1");
+
+                //        retrievedHash = hashString.Value.Hash;
+                //        //Assign retrieved value to response object
+                //        endpoint2Response.Hash = retrievedHash;
+
+                //        //Extract the last character from the hash string
+                //        lastChar = retrievedHash.Last();
+
+                //        //Validate if last character is number && odd number
+                //        if (char.IsDigit(lastChar))
+                //        {
+                //            //Validate if last character is odd number
+                //            int lastNum = int.Parse(lastChar.ToString());
+                //            if (lastNum % 2 != 0)
+                //            {
+                //                hashPass = true; 
+                //                endpoint2Response.ResponseMessage = $"The last character is '{lastChar}'. This is a number and odd number. Pass!";
+                //                break;
+                //            }
+                //            else
+                //            {
+                //                endpoint2Response.ResponseMessage = $"The last character is '{lastChar}'. This is an even number. Does not pass.";
+                //                break;
+                //            }
+                //        }
+                //        else
+                //        {
+                //            endpoint2Response.ResponseMessage = $"The last character is '{lastChar}'. This is an alphabet. Does not pass.";
+                //        }
+
+                //    }
+
+                //} 
+                **/
 
                 if (hashPass)
                 {
-                    _logger.LogInformation("[ValidateHash] Hash Pass.");
-                    return Ok(response);
+                    _logger.LogInformation($"[ValidateHash] Hash passed in ({attempts}) attempts.");
+                    return Ok(endpoint2Response);
                 }
                 else
                 {
-                    _logger.LogInformation($"[ValidateHash] Hash Failed with '{response.ResponseMessage}'");
-                    return NotFound(response);
+                    _logger.LogInformation($"[ValidateHash] Hash does not pass. Current attempt no.: {attempts}");
+                    return NotFound(endpoint2Response);
                 }
             }
             catch (Exception ex)
