@@ -14,5 +14,6 @@ export const options = {
 
 export default () => {
     const urlRes = http.get('https://localhost:7057/Hasher/ValidateHash');
+
     sleep(1);
 };
